@@ -459,7 +459,7 @@ Then to blast the proteins against the POGs you can use the following command:
         -db $POGDB \
     > annotations/pog-annotations/blastp_HighVQ.out
 
-If you have GNU parallel installed, one can parallize the process over multiple cores:
+If you have GNU parallel installed, one can parallelize the process over multiple cores:
 
 ::
 
@@ -471,7 +471,7 @@ If you have GNU parallel installed, one can parallize the process over multiple 
         -db $POGDB \
     > annotations/pog-annotations/blastp_HighVQ.out
     
-The resulting BLAST ouput has predicted proteins aligned to POG proteins. There's a file in CONCOCT that 
+The resulting BLAST output has predicted proteins aligned to POG proteins. There's a file in CONCOCT that 
 contains protein id to POG id mappings. That way clusters can be linked to POGs. Use the ``POG_table.py`` 
 script to generate a cluster to POG hit table:
 
@@ -494,7 +494,8 @@ the resulting table in a HTML page:
         -c evaluation-output/clustering_gt1000_pog_HighVQ.tab \
         -o evaluation-output/clustering_gt1000_pog_HighVQ.html
 
-Note that the script requires ``bokeh>=0.6.0``. The plot is downloadable from:
+Note that the script requires ``bokeh>=0.6.0``. The plot can become rather large which is why there
+is no regular pdf plot. The example is very small though. The plot is downloadable from:
 
 https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_pog_HighVQ.html
 
