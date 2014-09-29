@@ -48,8 +48,9 @@ def count_pogs_per_cluster(blastoutfile, cluster_file, protein_pog_file,
 
     # assign each protein in the blast output to one or more POGs
     blastdf.pogs = blastdf.sseqid.apply(create_pog_row, args=(pro_pogdf,))
-    # get the contig name of the protein
-    blastdf.contig = blastdf.qseqid.apply(lambda x: x.split(separator)[0])
+    # get the contig name of the protein, assumes the protein id is appended
+    # after separator character
+    blastdf.contig = blastdf.qseqid.apply(lambda x: separator.join(x.split(separator)[:-1]))
 
     # Load clustering
     clusterdf = pd.read_csv(cluster_file, sep=",", names=["contig", "cluster"])
