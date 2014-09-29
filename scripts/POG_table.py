@@ -56,7 +56,7 @@ def count_pogs_per_cluster(blastoutfile, cluster_file, protein_pog_file,
 
     # get cluster to pog mappings
     clusterdf.pogs = clusterdf.groupby('cluster').apply(
-        lambda x: blastdf.pogs[blastdf.contig.isin(x.contig)].sum())
+        lambda x: blastdf.pogs[blastdf.contig.isin(x.contig)].sum().astype(int))
     # select only cluster rows that have a pog hit
     clu_pog_sub = clusterdf.pogs[clusterdf.pogs.sum(axis=1) > 0]
     # select only pog columns that have a hit
