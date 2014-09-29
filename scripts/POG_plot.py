@@ -68,7 +68,7 @@ def plot_pogs(clu_pog_table, output_html, title):
 
     hm = CategoricalHeatMapCeilHack(pogs.transpose(), palette=palette,
             xlabel="Cluster", ylabel="POG", title=title, filename=output_html)
-    hm.width(30 * len(pogs)).height(20 * len(pogs.columns)).show()
+    hm.width(max(30 * len(pogs), 400)).height(max(20 * len(pogs.columns), 400)).show()
 
 
 if __name__ == "__main__":
