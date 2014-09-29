@@ -426,6 +426,79 @@ The plot is downloadable here:
 
 https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_scg.pdf
 
+Validation using Phage Orthologous Groups
+------------------------------------------
+A way to determine viral content of a cluster is by blasting the predicted proteins by Prodigal from
+the previous step (`Validation using single-copy core genes`_) against Phage Orthologous Groups (POGs). 
+See `POG paper <http://www.ncbi.nlm.nih.gov/pubmed/23222723>`_. The database can be downloaded from
+`NCBI <http://www.ncbi.nlm.nih.gov/COG/>`_. There is a database with all POGs and one with only those
+POGs that have a high Viral Quotient (VQ). POGs with a high VQ are unlikely to occur outside prophage
+regions. Therefore to test for viral content of our bins we will use the database with only high VQ.
+
+
+First create an output directory for the POG annotation:
+
+::
+    
+    
+    cd $CONCOCT_EXAMPLE
+    mkdir -p annotations/pog-annotations/
+    
+You need to set the location of the database::
+    
+    POGDB=/proj/b2010008/nobackup/database/pog/thousandgenomespogs/blastdb/POGseqs_HighVQ
+
+Then to blast the proteins against the POGs you can use the following command:
+
+::
+    
+    blastp -outfmt \
+        '6 qseqid sseqid evalue pident score qstart qend sstart send length slen' \
+        -num_threads 1 -max_target_seqs 1 -evalue 0.0001 \
+        -query annotations/proteins/velvet_71_c10K.faa \
+        -db $POGDB \
+    > annotations/pog-annotations/blastp_HighVQ.out
+
+If you have GNU parallel installed, one can parallize the process over multiple cores:
+
+::
+
+    cat annotations/proteins/velvet_71_c10K.faa | \
+    parallel --pipe --recstart '>' -N1000 \
+        blastp -outfmt \
+        "'6 qseqid sseqid evalue pident score qstart qend sstart send length slen'" \
+        -num_threads  1 -max_target_seqs 1 -evalue 0.0001 -query - \
+        -db $POGDB \
+    > annotations/pog-annotations/blastp_HighVQ.out
+    
+The resulting BLAST ouput has predicted proteins aligned to POG proteins. There's a file in CONCOCT that 
+contains protein id to POG id mappings. That way clusters can be linked to POGs. Use the ``POG_table.py`` 
+script to generate a cluster to POG hit table:
+
+::
+
+    python $CONCOCT/scripts/POG_table.py \
+        -b annotations/pog-annotations/blastp_HighVQ.out \
+        -c concoct-output/clustering_gt1000.csv \
+        --protein_pog_file $CONCOCT/pogs/protein_pog.tsv \
+    > evaluation-output/clustering_gt1000_pog_HighVQ.tab
+    
+
+    
+This file can help determine what bins have viral content. There is also a script to plot
+the resulting table in a HTML page:
+
+::
+
+    python $CONCOCT/scripts/POG_plot.py \
+        -c evaluation-output/clustering_gt1000_pog_HighVQ.tab \
+        -o evaluation-output/clustering_gt1000_pog_HighVQ.html
+
+Note that the script requires ``bokeh>=0.6.0``. The plot is downloadable from:
+
+https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_pog_HighVQ.html
+
+
 Incorporating linkage information
 ---------------------------------
 
