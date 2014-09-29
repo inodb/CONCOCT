@@ -3,9 +3,54 @@
 POG_table.py"""""
 import argparse
 import pandas as pd
-import seaborn as sns
+import math
 
 from bokeh.charts import CategoricalHeatMap
+
+
+class CategoricalHeatMapCeilHack(CategoricalHeatMap):
+    def get_data(self, palette, **value):
+        """Take the CategoricalHeatMap data from the input **value.
+
+        It calculates the chart properties accordingly. Then build a dict
+        containing references to all the calculated points to be used by
+        the rect glyph inside the ``draw`` method.
+
+        Args:
+        pallete (list): the colormap as hex values.
+        values (pd obj): the pandas dataframe to be plotted as categorical heatmap.
+        """
+        # assuming value is a pandas df
+        self.value = value
+        if palette is None:
+            colors = ["#75968f", "#a5bab7", "#c9d9d3", "#e2e2e2", "#dfccce",
+                    "#ddb7b1", "#cc7878", "#933b41", "#550b1d"]
+        else:
+            colors = palette
+
+        # Set up the data for plotting. We will need to have values for every
+        # pair of year/month names. Map the rate to a color.
+        catx = []
+        caty = []
+        color = []
+        rate = []
+        for y in self.catsy:
+            for m in self.catsx:
+                catx.append(m)
+                caty.append(y)
+                rate.append(self.value[m][y])
+
+        # Now that we have the min and max rates
+        for y in self.catsy:
+            for m in self.catsx:
+                c = int(math.ceil((len(colors) - 1) * (self.value[m][y] - min(rate)) / (max(rate) - min(rate))))
+                color.append(colors[c])
+
+        width = [0.95] * len(catx)
+        height = [0.95] * len(catx)
+
+        self.data = dict(catx=catx, caty=caty, color=color, rate=rate,
+                         width=width, height=height)
 
 
 def plot_pogs(clu_pog_table, output_html, title):
@@ -16,12 +61,12 @@ def plot_pogs(clu_pog_table, output_html, title):
     pogs.set_index(pogs.index.astype(str), inplace=True)
     pogs.columns = [str(int(c[3:])) for c in pogs.columns]
 
-    # generate enough colors using seaborn to represent all the different counts of the POGs
-    # TODO: should maybe use a more common library
-    chpal = sns.cubehelix_palette(pogs.max().max() + 1, start=2, rot=0, dark=0, light=.95)
-    palette = ['#%02x%02x%02x' % tuple([round(255 * rgbi) for rgbi in rgb]) for rgb in chpal]
+    # default generated with seaborn:
+    # chpal = sns.cubehelix_palette(6, start=2, rot=0, dark=0, light=.95)
+    # palette = ['#%02x%02x%02x' % tuple([round(255 * rgbi) for rgbi in rgb]) for rgb in chpal]
+    palette = ['#ecf7ee', '#a7d3b0', '#6ca878', '#3e7749', '#193f21', '#000000']
 
-    hm = CategoricalHeatMap(pogs.transpose(), palette=palette,
+    hm = CategoricalHeatMapCeilHack(pogs.transpose(), palette=palette,
             xlabel="Cluster", ylabel="POG", title=title, filename=output_html)
     hm.width(30 * len(pogs)).height(20 * len(pogs.columns)).show()
 
